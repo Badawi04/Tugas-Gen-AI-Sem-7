@@ -1,0 +1,3 @@
+timestamp,model,input_tokens,output_tokens,latency_ms
+1789545556.6858895,claude-sonnet-4-5,350,210,420.5
+1789545556.6858895,gpt-4o,420,180,380.2
