@@ -14,7 +14,7 @@ client = OpenAI(
     api_key=api_key,
     base_url="https://openrouter.ai/api/v1",
 )
-MODEL = "inclusionai/ling-3.0-flash-fin:free"
+MODEL = "inclusionai/ling-3.0-flash-fin"
 
 # Without CoT - model jumps to answer, more likely to be wrong
 DIRECT_PROMPT = "If a model costs $3.00 per million input tokens and $15.00 per million output tokens, and a request uses 2,400 input tokens and 800 output tokens, what is the total cost in USD?"

@@ -1,14 +1,21 @@
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Optional
-from openai import OpenAI
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
+from openai import OpenAI
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-openai_client = OpenAI(
-    api_key=os.environ["OPENAI_API_KEY"]
+api_key = os.getenv("OPENROUTER_API_KEY")
+if not api_key:
+    raise RuntimeError("OPENROUTER_API_KEY belum tersedia di file .env")
+
+openrouter_client = OpenAI(
+    api_key=api_key,
+    base_url="https://openrouter.ai/api/v1",
 )
 
 
@@ -36,11 +43,11 @@ class SearchResult:
 
 def embed_batch(
     texts: list[str],
-    model: str = "text-embedding-3-small"
+    model: str = "openai/text-embedding-3-small"
 ) -> np.ndarray:
     """Embed texts in a single API call. Returns (n, dim) float32 array."""
 
-    response = openai_client.embeddings.create(
+    response = openrouter_client.embeddings.create(
         input=texts,
         model=model
     )
@@ -68,7 +75,7 @@ class VectorStore:
 
     def __init__(
         self,
-        embed_model: str = "text-embedding-3-small"
+        embed_model: str = "openai/text-embedding-3-small"
     ):
         self.embed_model = embed_model
         self._documents: list[Document] = []

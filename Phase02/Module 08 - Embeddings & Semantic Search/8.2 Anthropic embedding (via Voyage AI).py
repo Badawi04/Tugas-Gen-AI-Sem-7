@@ -1,27 +1,31 @@
-# pip install voyageai
-
-import voyageai
-import os
 import numpy as np
+import os
+from pathlib import Path
+
 from dotenv import load_dotenv
+from openai import OpenAI
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-vo = voyageai.Client(
-    api_key=os.environ["VOYAGE_API_KEY"]
+api_key = os.getenv("OPENROUTER_API_KEY")
+if not api_key:
+    raise RuntimeError("OPENROUTER_API_KEY belum tersedia di file .env")
+
+client = OpenAI(
+    api_key=api_key,
+    base_url="https://openrouter.ai/api/v1",
 )
 
-result = vo.embed(
-    [
+result = client.embeddings.create(
+    model="openai/text-embedding-3-small",
+    input=[
         "What is RAG?",
         "Explain vector databases."
-    ],
-    model="voyage-3",  # current recommended model
-    input_type="document",  # "document" for corpus, "query" for search queries
+    ]
 )
 
 embeddings = np.array(
-    result.embeddings,
+    [item.embedding for item in result.data],
     dtype=np.float32
 )
 
@@ -30,5 +34,5 @@ print(
 )  # (2, 1024)
 
 print(
-    f"Token usage: {result.total_tokens}"
+    f"Token usage: {result.usage.total_tokens}"
 )

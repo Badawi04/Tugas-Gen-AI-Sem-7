@@ -1,5 +1,7 @@
 import numpy as np
 from dataclasses import dataclass
+from pathlib import Path
+import runpy
 
 
 @dataclass
@@ -154,8 +156,17 @@ eval_cases = [
 ]
 
 
-# metrics = evaluate_retrieval(store, eval_cases, k=3)
-# print(metrics)
+pipeline = runpy.run_path(
+    Path(__file__).with_name("8.4 Semantic Search - Full Pipeline.py")
+)
+
+metrics = evaluate_retrieval(
+    pipeline["store"],
+    eval_cases,
+    k=3
+)
+
+print(metrics)
 
 # Example output:
 # {'precision@3': 0.8, 'recall@3': 0.75, 'MRR': 0.9167}

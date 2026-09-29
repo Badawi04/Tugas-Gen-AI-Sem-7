@@ -1,17 +1,25 @@
-from openai import OpenAI
-import os, numpy as np
-from dotenv import load_dotenv
+import os
+from pathlib import Path
 
-load_dotenv()
+import numpy as np
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
+api_key = os.getenv("OPENROUTER_API_KEY")
+if not api_key:
+    raise RuntimeError("OPENROUTER_API_KEY belum tersedia di file .env")
 
 client = OpenAI(
-    api_key=os.environ["OPENAI_API_KEY"]
+    api_key=api_key,
+    base_url="https://openrouter.ai/api/v1",
 )
 
 
 def embed(
     texts: list[str],
-    model: str = "text-embedding-3-small"
+    model: str = "openai/text-embedding-3-small"
 ) -> np.ndarray:
     """Embed a list of texts. Returns array of shape (n, dim)."""
 

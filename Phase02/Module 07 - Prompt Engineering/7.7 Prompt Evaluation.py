@@ -1,12 +1,22 @@
 from dataclasses import dataclass
-import anthropic, os, json
+import json
+import os
+from pathlib import Path
+
 from dotenv import load_dotenv
+from openai import OpenAI
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-client = anthropic.Anthropic(
-    api_key=os.environ["ANTHROPIC_API_KEY"]
+api_key = os.getenv("OPENROUTER_API_KEY")
+if not api_key:
+    raise RuntimeError("OPENROUTER_API_KEY belum tersedia di file .env")
+
+client = OpenAI(
+    api_key=api_key,
+    base_url="https://openrouter.ai/api/v1",
 )
+MODEL = "inclusionai/ling-3.0-flash-fin"
 
 
 @dataclass
@@ -21,14 +31,22 @@ def evaluate_prompt(system: str, cases: list[EvalCase]) -> dict:
     results = []
 
     for case in cases:
-        resp = client.messages.create(
-            model="claude-sonnet-4-5",
+        resp = client.chat.completions.create(
+            model=MODEL,
             max_tokens=256,
-            system=system,
-            messages=[{"role": "user", "content": case.input_text}],
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": case.input_text},
+            ],
         )
 
-        text = resp.content[0].text.strip()
+        if not resp.choices:
+            raise RuntimeError("OpenRouter tidak mengembalikan pilihan jawaban.")
+
+        message = resp.choices[0].message
+        text = (message.content or getattr(message, "reasoning", "")).strip()
+        if not text:
+            raise RuntimeError("OpenRouter tidak mengembalikan teks jawaban.")
 
         # Check keyword hit
         keyword_hit = any(

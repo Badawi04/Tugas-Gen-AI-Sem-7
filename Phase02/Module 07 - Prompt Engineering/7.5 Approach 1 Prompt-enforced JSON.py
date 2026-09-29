@@ -1,11 +1,21 @@
-import anthropic, os, json
+import json
+import os
+from pathlib import Path
+
 from dotenv import load_dotenv
+from openai import OpenAI
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-client = anthropic.Anthropic(
-    api_key=os.environ["ANTHROPIC_API_KEY"]
+api_key = os.getenv("OPENROUTER_API_KEY")
+if not api_key:
+    raise RuntimeError("OPENROUTER_API_KEY belum tersedia di file .env")
+
+client = OpenAI(
+    api_key=api_key,
+    base_url="https://openrouter.ai/api/v1",
 )
+MODEL = "openrouter/free"
 
 SYSTEM = """You are a data extractor. Extract information and
 return ONLY a JSON object.
@@ -25,14 +35,22 @@ texts = [
 ]
 
 def extract_company_info(text: str) -> dict:
-    resp = client.messages.create(
-        model="claude-sonnet-4-5",
-        max_tokens=256,
-        system=SYSTEM,
-        messages=[{"role": "user", "content": text}],
+    resp = client.chat.completions.create(
+        model=MODEL,
+        max_tokens=512,
+        messages=[
+            {"role": "system", "content": SYSTEM},
+            {"role": "user", "content": text},
+        ],
     )
 
-    raw = resp.content[0].text.strip()
+    if not resp.choices:
+        raise RuntimeError("OpenRouter tidak mengembalikan teks JSON.")
+
+    message = resp.choices[0].message
+    raw = (message.content or getattr(message, "reasoning", "")).strip()
+    if not raw:
+        raise RuntimeError("OpenRouter tidak mengembalikan teks JSON.")
 
     # Strip any accidental markdown fences
     raw = (

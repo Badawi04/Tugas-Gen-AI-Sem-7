@@ -1,14 +1,21 @@
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 import numpy as np
-from openai import OpenAI
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
+from openai import OpenAI
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-openai_client = OpenAI(
-    api_key=os.environ["OPENAI_API_KEY"]
+api_key = os.getenv("OPENROUTER_API_KEY")
+if not api_key:
+    raise RuntimeError("OPENROUTER_API_KEY belum tersedia di file .env")
+
+openrouter_client = OpenAI(
+    api_key=api_key,
+    base_url="https://openrouter.ai/api/v1",
 )
 
 
@@ -29,9 +36,9 @@ def embed_texts(
     texts: list[str]
 ) -> np.ndarray:
 
-    resp = openai_client.embeddings.create(
+    resp = openrouter_client.embeddings.create(
         input=texts,
-        model="text-embedding-3-small"
+        model="openai/text-embedding-3-small"
     )
 
     vecs = np.array(
