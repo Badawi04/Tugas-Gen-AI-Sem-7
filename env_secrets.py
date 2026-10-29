@@ -21,6 +21,7 @@ def get_api_key(provider: str) -> str:
     key_map = {
         "anthropic": "ANTHROPIC_API_KEY",
         "openai": "OPENAI_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
         "google": "GOOGLE_API_KEY",
     }
     env_var = key_map.get(provider.lower())
